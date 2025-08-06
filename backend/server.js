@@ -2,16 +2,14 @@ require("dotenv").config();
 const cors = require("cors");
 const express = require("express"); // importing express
 const mongoose = require("mongoose");
-// const listingsRoutes = require("./routes/listings");
-// const reservationRoutes = require("./routes/reservationRoute");
-// const userRoutes = require("./routes/user");
+const userRoute = require("./routes/userRoute");
 
 // creating the express app
 const app = express();
 
 app.use(
   cors({
-    origin: "", // Allow Netlify frontend
+    origin: "https://auth-system-project.netlify.app/", // Allow Netlify frontend
     credentials: true,
   })
 );
@@ -31,9 +29,7 @@ app.get("/", (req, res) => {
 
 //use the imported listing routes
 
-// app.use("/api/listings", listingsRoutes);
-// app.use("/api/reservations", reservationRoutes);
-// app.use("/api/user", userRoutes);
+ app.use("/api/user", userRoute);
 
 //connect to DB
 mongoose
