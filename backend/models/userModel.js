@@ -16,7 +16,7 @@ const userSchema = new Schema({
   },
   role: {
     type: String,
-    enum: ["guest", "admin", 'moderator'],
+    enum: ["guest", "admin", "moderator"],
     default: "guest",
   },
 });
@@ -42,7 +42,7 @@ userSchema.statics.signup = async function (email, password, role) {
   const salt = await bcrypt.genSalt(10);
   const hash = await bcrypt.hash(password, salt);
 
-  const user = await this.create({ email, password: hash });
+  const user = await this.create({ email, password: hash, role });
 
   return user;
 };

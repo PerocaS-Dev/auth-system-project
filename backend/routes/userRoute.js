@@ -1,14 +1,51 @@
-const express = require('express')
+const express = require("express");
+const User = require("../models/userModel");
 
 //controller funstions
-const { signupUser, loginUser} = require('../controllers/userController')
+const {
+  signupUser,
+  loginUser,
+  getProfile,
+  refreshAccessToken,
+  forgotPassword,
+  resetPassword,
+} = require("../controllers/userController");
 
-const router = express.Router()
+//middleware
+const { verifyToken, requireRole } = require("../middlewares/auth");
+
+const router = express.Router();
+
+// ================== PUBLIC ROUTES(no token needed) ================== //
 
 //login route
-router.post('/login', loginUser)
+router.post("/login", loginUser);
 
 //signup route
-router.post('/signup', signupUser)
+router.post("/signup", signupUser);
 
-module.exports = router
+// Refresh token endpoint
+router.post("/refresh-token", refreshAccessToken);
+
+router.post("/forgot-password", forgotPassword);
+
+router.post("/reset-password", resetPassword);
+
+// ================== PROTECTED ROUTES ================== //
+
+//get logged-in user profile
+router.get("/profile", verifyToken, getProfile);
+
+// admin-only route
+router.get(
+  "/all-users",
+  verifyToken,
+  requireRole(["admin"]),
+  async (req, res) => {
+    // only admins can see this
+    const users = await User.find().select("-password");
+    res.json(users);
+  }
+);
+
+module.exports = router;
