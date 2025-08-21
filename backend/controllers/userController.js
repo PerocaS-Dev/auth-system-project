@@ -44,15 +44,39 @@ const loginUser = async (req, res) => {
 
 //sign up user
 const signupUser = async (req, res) => {
-  const { email, password, role = "guest" } = req.body;
+  const {
+    name,
+    surname,
+    username,
+    email,
+    password,
+    confirmPassword,
+    role = "guest",
+  } = req.body;
 
   try {
-    const user = await User.signup(email, password, role);
+    // confirm password check
+    if (password !== confirmPassword) {
+      return res.status(400).json({ error: "Passwords do not match" });
+    }
+
+    const user = await User.signup(
+      name,
+      surname,
+      username,
+      email,
+      password,
+      confirmPassword,
+      role
+    );
     const accessToken = createAccessToken(user);
     const refreshToken = createRefreshToken(user._id);
 
     res.status(200).json({
       user: {
+        name: user.name,
+        surname: user.surname,
+        username: user.username,
         _id: user._id,
         email: user.email,
         role: user.role,
@@ -75,6 +99,65 @@ const getProfile = async (req, res) => {
 
     res.status(200).json(user); // Explicitly set status 200
   } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+const editProfile = async (req, res) => {
+  try {
+    const {
+      name,
+      surname,
+      username,
+      contact,
+      display,
+      oldPassword,
+      newPassword,
+      confirmPassword,
+    } = req.body;
+
+    // Find the user making the request
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Handle password update
+    if (oldPassword && newPassword && confirmPassword) {
+      const isMatch = await bcrypt.compare(oldPassword, user.password);
+      if (!isMatch) {
+        return res.status(401).json({ error: "Old password is incorrect" });
+      }
+
+      if (newPassword !== confirmPassword) {
+        return res.status(400).json({ error: "New passwords do not match" });
+      }
+
+      user.password = await bcrypt.hash(newPassword, 10);
+    } else if (oldPassword || newPassword || confirmPassword) {
+      return res
+        .status(400)
+        .json({ error: "All password fields are required" });
+    }
+
+    // Update other fields if provided
+    if (name) user.name = name;
+    if (surname) user.surname = surname;
+    if (username) user.username = username;
+    if (contact) user.contact = contact;
+    if (display) user.display = display;
+
+    await user.save();
+
+    // Don’t return password
+    const { password, ...updatedUser } = user.toObject();
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Server error" });
   }
 };
@@ -145,9 +228,18 @@ const forgotPassword = async (req, res) => {
 
 // reset password
 const resetPassword = async (req, res) => {
-  const { token, newPassword } = req.body;
+  const { token, newPassword, confirmPassword } = req.body;
 
   try {
+    if (!newPassword || !confirmPassword) {
+      return res
+        .status(400)
+        .json({ error: "Both password fields are required" });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ error: "Passwords do not match" });
+    }
     const decoded = jwt.verify(token, process.env.RESET_SECRET);
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -167,4 +259,5 @@ module.exports = {
   refreshAccessToken,
   forgotPassword,
   resetPassword,
+  editProfile,
 };

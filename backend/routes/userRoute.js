@@ -9,6 +9,7 @@ const {
   refreshAccessToken,
   forgotPassword,
   resetPassword,
+  editProfile,
 } = require("../controllers/userController");
 
 //middleware
@@ -35,6 +36,8 @@ router.post("/reset-password", resetPassword);
 
 //get logged-in user profile
 router.get("/profile", verifyToken, getProfile);
+
+router.put("/profile", verifyToken, editProfile);
 
 // admin-only route
 router.get(

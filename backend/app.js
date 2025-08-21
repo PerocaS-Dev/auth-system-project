@@ -11,7 +11,7 @@ console.log("ACCESS_SECRET loaded:", process.env.ACCESS_SECRET ? "Yes" : "No");
 
 app.use(
   cors({
-    origin: "https://auth-system-project.netlify.app/",
+    origin: "https://auth-system-project.netlify.app",
     credentials: true,
   })
 );

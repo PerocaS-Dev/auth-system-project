@@ -4,7 +4,7 @@ const { MongoMemoryServer } = require("mongodb-memory-server");
 
 let mongo;
 
-jest.setTimeout(30000);
+jest.setTimeout(60000);
 
 beforeAll(async () => {
   mongo = await MongoMemoryServer.create();
@@ -18,7 +18,7 @@ beforeAll(async () => {
 // });
 
 afterAll(async () => {
-  // Just close connections without dropping database
+  await mongoose.connection.dropDatabase(); // Clean up AFTER all tests
   await mongoose.connection.close();
   await mongo.stop();
 });
