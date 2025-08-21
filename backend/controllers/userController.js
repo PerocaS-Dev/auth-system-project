@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
@@ -66,7 +67,6 @@ const signupUser = async (req, res) => {
       username,
       email,
       password,
-      confirmPassword,
       role
     );
     const accessToken = createAccessToken(user);
@@ -162,6 +162,48 @@ const editProfile = async (req, res) => {
   }
 };
 
+// Add this controller function before the module.exports
+const deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Validate MongoDB ID format
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "Invalid user ID" });
+    }
+
+    // Prevent admin from deleting themselves
+    if (userId === req.user._id.toString()) {
+      return res.status(400).json({ error: "Cannot delete your own account" });
+    }
+
+    const userToDelete = await User.findById(userId);
+    if (!userToDelete) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Prevent deleting other admins
+    if (userToDelete.role === "admin") {
+      return res.status(403).json({ error: "Cannot delete admin accounts" });
+    }
+
+    await User.findByIdAndDelete(userId);
+
+    res.status(200).json({
+      message: "User deleted successfully",
+      deletedUser: {
+        _id: userToDelete._id,
+        email: userToDelete.email,
+        username: userToDelete.username,
+        role: userToDelete.role,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 // refresh access token using refresh token
 const refreshAccessToken = async (req, res) => {
   const { refreshToken } = req.body;
@@ -200,6 +242,10 @@ const forgotPassword = async (req, res) => {
     const resetToken = jwt.sign({ _id: user._id }, process.env.RESET_SECRET, {
       expiresIn: "15m",
     });
+
+    // TEMPORARY: Log the token for testing
+    console.log("RESET TOKEN FOR TESTING:", resetToken);
+    console.log("For user:", user.email);
 
     // setup email transport
     const transporter = nodemailer.createTransport({
@@ -260,4 +306,5 @@ module.exports = {
   forgotPassword,
   resetPassword,
   editProfile,
+  deleteUser,
 };

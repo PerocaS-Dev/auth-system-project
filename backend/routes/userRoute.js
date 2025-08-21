@@ -10,6 +10,7 @@ const {
   forgotPassword,
   resetPassword,
   editProfile,
+  deleteUser,
 } = require("../controllers/userController");
 
 //middleware
@@ -38,6 +39,8 @@ router.post("/reset-password", resetPassword);
 router.get("/profile", verifyToken, getProfile);
 
 router.put("/profile", verifyToken, editProfile);
+
+router.delete("/user/:userId", verifyToken, requireRole(["admin"]), deleteUser);
 
 // admin-only route
 router.get(
