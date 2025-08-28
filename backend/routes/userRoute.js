@@ -43,15 +43,10 @@ router.put("/profile", verifyToken, editProfile);
 router.delete("/user/:userId", verifyToken, requireRole(["admin"]), deleteUser);
 
 // admin-only route
-router.get(
-  "/all-users",
-  verifyToken,
-  requireRole(["admin"]),
-  async (req, res) => {
-    // only admins can see this
-    const users = await User.find().select("-password");
-    res.json(users);
-  }
-);
+router.get("/users", verifyToken, requireRole(["admin"]), async (req, res) => {
+  // only admins can see this
+  const users = await User.find().select("-password");
+  res.json(users);
+});
 
 module.exports = router;
