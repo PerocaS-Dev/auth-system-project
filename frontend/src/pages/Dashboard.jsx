@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   // helper: get token + role
   const getAuthData = () => {
@@ -79,6 +81,10 @@ const Dashboard = () => {
     fetchUsers();
   }, []);
 
+  const backToHome = () => {
+    navigate("/home");
+  };
+
   if (loading) return <p className="text-brand-gray_green">Loading users...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
 
@@ -145,6 +151,12 @@ const Dashboard = () => {
             </tbody>
           </table>
         </div>
+        <button
+          onClick={backToHome}
+          className="w-48 h-12 mt-5 border rounded-md bg-brand-gray_green text-brand-lighter_orange font-bold"
+        >
+          Back
+        </button>
       </div>
     </div>
   );
