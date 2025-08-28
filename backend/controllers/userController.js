@@ -245,31 +245,39 @@ const forgotPassword = async (req, res) => {
       expiresIn: "15m",
     });
 
-    // TEMPORARY: Log the token for testing
-    console.log("RESET TOKEN FOR TESTING:", resetToken);
-    console.log("For user:", user.email);
-
-    // setup email transport
+    // ✅ Mailtrap Email Setup (REPLACE the Gmail code)
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: process.env.MAILTRAP_HOST, // 'live.smtp.mailtrap.io'
+      port: process.env.MAILTRAP_PORT, // 587
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: process.env.MAILTRAP_USER, // Your Mailtrap username
+        pass: process.env.MAILTRAP_PASSWORD, // Your Mailtrap password
       },
     });
 
-    const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
+    const resetLink = `https://locked-by-peroca.netlify.app/reset-password?token=${resetToken}`;
 
+    // Send email via Mailtrap
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: '"Locked-By-Peroca" <noreply@yourapp.com>', // Professional sender
       to: user.email,
       subject: "Password Reset Request",
-      html: `<p>You requested a password reset</p>
-             <p>Click <a href="${resetLink}">here</a> to reset your password. Link expires in 15 minutes.</p>`,
+      html: `
+      <div style="padding: 10px; background: #f4e8db; color: #6f9d83; text-decoration: none; border-radius: 5px;>
+      <h2>Password Reset Request</h2>
+        <p>You requested a password reset for your account.</p>
+        <p>Click the link below to reset your password (expires in 15 minutes):</p>
+        <a href="${resetLink}" style="padding: 10px; color: #2f5832; text-decoration: none; border-radius: 5px;">
+          Reset Password
+        </a>
+        <p>Or copy this link: ${resetLink}</p>
+      </div>
+      `,
     });
 
-    res.json({ message: "Password reset link sent to email" });
+    res.json({ message: "Password reset link sent to your email" });
   } catch (err) {
+    console.error("Error in forgotPassword:", err);
     res.status(500).json({ error: "Server error" });
   }
 };

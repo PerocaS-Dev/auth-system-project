@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAuthContext } from "../context/AuthContext";
 
-export const userPasswordReset = () => {
+export const usePasswordReset = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const { dispatch } = useAuthContext();
@@ -10,60 +10,35 @@ export const userPasswordReset = () => {
     setIsLoading(true);
     setError(null);
 
-    console.log("Sending reset request to:", import.meta.env.VITE_API_BASE_URL);
-    const response = await fetch(
-      `${import.meta.env.VITE_API_BASE_URL}/api/user/reset-password`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          token, // required by backend
-          newPassword, // backend expects this name
-          confirmPassword, // backend expects this name
-        }),
-      }
-    );
-
-    console.log("Raw response:", response);
-
     try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/user/reset-password`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token, newPassword, confirmPassword }),
+        }
+      );
+
       const json = await response.json();
 
       if (!response.ok) {
-        setIsLoading(false);
-        setError(json.error);
-        console.log("Response JSON:", json);
+        setError(json.error || "Password reset failed");
         return false;
       }
-      if (response.ok) {
-        const { user, accessToken, refreshToken } = json;
-        //save the user to local storage
-        localStorage.setItem(
-          "user",
-          JSON.stringify({ ...user, accessToken, refreshToken })
-        );
 
-        //update the auth context
-        // dispatch({
-        //   type: "LOGIN",
-        //   payload: {
-        //     user,
-        //     accessToken,
-        //     refreshToken,
-        //   },
-        // });
-
-        setIsLoading(false);
-        return true;
-      }
-    } catch {
-      setError("Something went wrong. Please try again.");
-      setIsLoading(false);
+      // Password reset successful
+      return true;
+    } catch (error) {
+      setError("Network error. Please try again.");
       return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return { reset, isLoading, error };
 };
 
-export default userPasswordReset;
+// Fix the export - remove "default" since it's a named export
+export default usePasswordReset;
