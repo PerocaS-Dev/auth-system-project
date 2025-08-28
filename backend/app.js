@@ -11,7 +11,7 @@ console.log("ACCESS_SECRET loaded:", process.env.ACCESS_SECRET ? "Yes" : "No");
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://locked-by-peroca.netlify.app/"],
+    origin: ["http://localhost:5173", "https://locked-by-peroca.netlify.app"],
     credentials: true,
   })
 );
