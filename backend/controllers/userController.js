@@ -69,8 +69,10 @@ const signupUser = async (req, res) => {
       password,
       role
     );
+
     const accessToken = createAccessToken(user);
     const refreshToken = createRefreshToken(user._id);
+    console.log("Incoming signup body:", req.body);
 
     res.status(200).json({
       user: {
@@ -256,7 +258,7 @@ const forgotPassword = async (req, res) => {
       },
     });
 
-    const resetLink = `http://localhost:3000/reset-password/${resetToken}`;
+    const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,

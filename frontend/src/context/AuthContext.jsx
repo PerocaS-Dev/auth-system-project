@@ -5,16 +5,15 @@ export const AuthContext = createContext();
 const authReducer = (state, action) => {
   switch (action.type) {
     case "LOGIN":
-      // Add proper null checks
       if (!action.payload || !action.payload.user) {
         return state;
       }
       return {
         isLoggedIn: true,
         user: {
-          _id: action.payload.user?._id,
-          email: action.payload.user?.email,
-          isAdmin: action.payload.user?.role === "admin",
+          _id: action.payload.user._id,
+          email: action.payload.user.email,
+          isAdmin: action.payload.user.role === "admin",
         },
         accessToken: action.payload.accessToken,
         refreshToken: action.payload.refreshToken,
@@ -35,8 +34,11 @@ export const AuthContextProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, {
     isLoggedIn: false,
     user: null,
+    accessToken: null,
+    refreshToken: null,
   });
 
+  // Load from localStorage on mount
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -46,9 +48,13 @@ export const AuthContextProvider = ({ children }) => {
           dispatch({
             type: "LOGIN",
             payload: {
-              user: parsed,
-              accessToken: user.accessToken,
-              refreshToken: user.refreshToken,
+              user: {
+                _id: parsed._id,
+                email: parsed.email,
+                role: parsed.role,
+              },
+              accessToken: parsed.accessToken,
+              refreshToken: parsed.refreshToken,
             },
           });
         }
@@ -65,7 +71,9 @@ export const AuthContextProvider = ({ children }) => {
       localStorage.setItem(
         "user",
         JSON.stringify({
-          ...state.user,
+          _id: state.user._id,
+          email: state.user.email,
+          role: state.user.isAdmin ? "admin" : "guest",
           accessToken: state.accessToken,
           refreshToken: state.refreshToken,
         })

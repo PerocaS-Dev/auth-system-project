@@ -1,40 +1,25 @@
 import React, { useState } from "react";
 import { useAuthContext } from "../context/AuthContext";
 
-export const userSignup = () => {
+export const userPasswordReset = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const { dispatch } = useAuthContext();
 
-  const signup = async (
-    firstname,
-    lastname,
-    username,
-    email,
-    password,
-    confirmPassword,
-    role = "guest"
-  ) => {
+  const reset = async (token, newPassword, confirmPassword) => {
     setIsLoading(true);
     setError(null);
 
-    console.log(
-      "Sending signup request to:",
-      import.meta.env.VITE_API_BASE_URL
-    );
+    console.log("Sending reset request to:", import.meta.env.VITE_API_BASE_URL);
     const response = await fetch(
-      `${import.meta.env.VITE_API_BASE_URL}/api/user/signup`,
+      `${import.meta.env.VITE_API_BASE_URL}/api/user/reset-password`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: firstname,
-          surname: lastname,
-          username,
-          email,
-          password,
-          confirmPassword,
-          role,
+          token, // required by backend
+          newPassword, // backend expects this name
+          confirmPassword, // backend expects this name
         }),
       }
     );
@@ -59,14 +44,14 @@ export const userSignup = () => {
         );
 
         //update the auth context
-        dispatch({
-          type: "LOGIN",
-          payload: {
-            user,
-            accessToken,
-            refreshToken,
-          },
-        });
+        // dispatch({
+        //   type: "LOGIN",
+        //   payload: {
+        //     user,
+        //     accessToken,
+        //     refreshToken,
+        //   },
+        // });
 
         setIsLoading(false);
         return true;
@@ -78,7 +63,7 @@ export const userSignup = () => {
     }
   };
 
-  return { signup, isLoading, error };
+  return { reset, isLoading, error };
 };
 
-export default userSignup;
+export default userPasswordReset;
